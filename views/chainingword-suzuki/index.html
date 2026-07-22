@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <title>Miguesia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+        background: #000;
+      }
+      .stage {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+      section {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        gap: 24px;
+        padding: 40px;
+        z-index: 2;
+        color: #fff;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(8px);
+        transition:
+          opacity 0.28s,
+          transform 0.28s;
+      }
+      body:not(:has(:target)) #home {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: none;
+      }
+      #regis:target,
+      #countdown:target {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: none;
+        z-index: 3;
+      }
+      .bg-media {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 1;
+        pointer-events: none;
+        background: #000;
+      }
+      .bg-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.25);
+        z-index: 1.5;
+        pointer-events: none;
+      }
+      #home {
+        cursor: pointer;
+      }
+      #regis .bg-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 1;
+        pointer-events: none;
+      }
+      #regis h1,
+      #regis p,
+      #regis form {
+        z-index: 3;
+      }
+      #regis form {
+        width: min(80%, 2200px);
+        margin-top: 15%;
+      }
+      #regis form input,
+      #regis form button {
+        width: 100%;
+        padding: 45px;
+        font-size: 75px;
+        margin-bottom: 50px;
+        border-radius: 55px;
+        text-align: center;
+      }
+      #regis form input {
+        border: 5px solid #0072ce;
+        outline: none;
+      }
+      button {
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+      }
+      #countdown video {
+        z-index: 1;
+      }
+      .button-music {
+        position: absolute;
+        top: 92%;
+        left: 2%;
+        border: 5px solid #fff;
+        /* background: #00368f; */
+        border-radius: 300px;
+        padding: 30px;
+        z-index: 999;
+      }
+      .button-music img {
+        width: 150px;
+      }
+      .button-setting {
+        position: absolute;
+        top: 92%;
+        left: 85%;
+        border: 5px solid #fff;
+        /* background: #00368f; */
+        border-radius: 300px;
+        padding: 30px;
+        z-index: 999;
+      }
+      .button-setting img {
+        width: 150px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="stage">
+      <!-- HOME -->
+
+      <section id="home">
+        <video
+          id="bg-home-video"
+          class="bg-media bg-video"
+          autoplay
+          loop
+          muted
+          playsinline
+          preload="metadata"
+        ></video>
+      </section>
+
+      <!-- REGISTRASI -->
+      <section id="regis">
+        <img id="bg-regis-img" class="bg-img" alt="Registrasi" />
+        <div class="bg-overlay"></div>
+        <form id="regisForm">
+          <input type="text" name="nama" placeholder="Nama lengkap" required />
+          <input type="text" name="email" placeholder="Rumah sakit Pratik" />
+          <input type="number" name="nohp" placeholder="Nomor HP" />
+          <div style="display: flex; gap: 12px; justify-content: center">
+            <button type="submit">NEXT</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- COUNTDOWN -->
+      <section id="countdown">
+        <video
+          id="bg-countdown-video"
+          class="bg-media bg-video"
+          autoplay
+          muted
+          playsinline
+          preload="metadata"
+        ></video>
+        <audio id="countdown-audio" preload="auto">
+          <source src="audio/countdown.mp3" type="audio/mpeg" />
+        </audio>
+      </section>
+    </div>
+
+    <!-- BUTTON MUSIK & SETTING -->
+    <div class="button-music">
+      <img src="icon/soundOff.png" id="img-sound-global" alt="" />
+      <audio id="sound-music-global" loop>
+        <source src="audio/home.mp3" type="audio/mp3" />
+      </audio>
+    </div>
+
+    <div class="button-setting">
+      <a href="settings"><img src="icon/setting.png" alt="" /></a>
+    </div>
+
+    <script src="/js/jquery/jquery.min.js"></script>
+    <script>
+      let gamePage = "game";
+      const pathParts = window.location.pathname.split("/").filter((p) => p); // ["miguesia"]
+      const eventName = pathParts[0] || "default";
+
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          const audio = document.getElementById("sound-music-global");
+          const imgSound = document.getElementById("img-sound");
+          audio
+            .play()
+            .then(() => (imgSound.src = "icon/soundOn.png"))
+            .catch(() => {});
+        }, 2000);
+      });
+
+      $(document).ready(function () {
+        var audio = document.getElementById("sound-music-global");
+        var isAudioPlaying = false;
+        $(".button-music").on("click", function (e) {
+          e.stopPropagation();
+          if (isAudioPlaying) {
+            audio.pause();
+            $("#img-sound").attr("src", "icon/soundOff.png");
+          } else {
+            audio.play();
+            $("#img-sound").attr("src", "icon/soundOn.png");
+          }
+          isAudioPlaying = !isAudioPlaying;
+        });
+      });
+
+      // Jika ada hash, hapus dari URL tanpa reload halaman
+      if (window.location.hash) {
+        history.replaceState(null, "", window.location.href.split("#")[0]);
+      }
+
+      // ======================== NEW LOAD CONFIG ========================
+      async function loadConfig() {
+        try {
+          // Ambil dari url
+          const pathParts = window.location.pathname
+            .split("/")
+            .filter((p) => p);
+          const eventName = pathParts[0] || "default"; // fallback kalau kosong
+          console.log(eventName);
+
+          // Ambil config berdasarkan url
+          const configRes = await fetch(`/config/${eventName}.json`, {
+            cache: "no-store",
+          });
+          if (!configRes.ok)
+            throw new Error(`config ${eventName}.json tidak ditemukan`);
+          const config = await configRes.json();
+
+          // Tampilkan atau sembunyikan input No HP
+          const nohpInput = document.querySelector(
+            '#regisForm input[name="nohp"]',
+          );
+          if (config.nohp === "ya") nohpInput.style.display = "block";
+          else nohpInput.style.display = "none";
+
+          // Tampilkan atau sembunyikan input Email
+          const emailInput = document.querySelector(
+            '#regisForm input[name="email"]',
+          );
+          if (config.email === "ya") emailInput.style.display = "block";
+          else emailInput.style.display = "none";
+
+          // Video home
+          if (config.image1) {
+            const homeVideo = document.getElementById("bg-home-video");
+            homeVideo.src = config.image1;
+            homeVideo.load();
+            homeVideo.play().catch(() => {});
+          }
+
+          // Gambar registrasi
+          if (config.image2)
+            document.getElementById("bg-regis-img").src = config.image2;
+
+          // Video countdown
+          if (config.image3) {
+            const countdownVideo =
+              document.getElementById("bg-countdown-video");
+            countdownVideo.innerHTML = `<source src="${config.image3}" type="video/mp4">`;
+            countdownVideo.load();
+          }
+
+          // ================== NAVIGASI OTOMATIS ==================
+          if (config.home === "tidak") {
+            if (config.formRegis === "ya") location.hash = "#regis";
+            else location.hash = "#countdown";
+          } else {
+            const homeSection = document.querySelector("#home");
+            homeSection.onclick = () => {
+              location.hash =
+                config.formRegis === "tidak" ? "#countdown" : "#regis";
+            };
+          }
+
+          console.log("Config event loaded:", event, config);
+        } catch (err) {
+          console.warn("Gagal load config event:", err.message);
+        }
+      }
+
+      loadConfig();
+
+      // ======================== COUNTDOWN ========================
+      function startCountdown() {
+        const homeAudio = document.getElementById("sound-music-global");
+        homeAudio.pause();
+        const countdownVideo = document.getElementById("bg-countdown-video");
+        const countdownAudio = document.getElementById("countdown-audio");
+        countdownAudio.pause();
+        countdownAudio.currentTime = 0;
+        countdownVideo.pause();
+        countdownVideo.currentTime = 0;
+        countdownVideo.addEventListener(
+          "loadedmetadata",
+          () => {
+            countdownVideo.currentTime = 0;
+            countdownVideo.play().catch(() => {});
+          },
+          { once: true },
+        );
+        countdownVideo.load();
+        countdownAudio.play().catch(() => {});
+        setTimeout(() => {
+          window.location.href = gamePage;
+        }, 2800);
+      }
+
+      window.addEventListener("hashchange", () => {
+        if (location.hash === "#countdown") startCountdown();
+      });
+
+      // Submit form registrasi
+      document
+        .querySelector("#regisForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          location.hash = "#countdown";
+          const formData = {
+            nama: e.target.nama.value.trim(),
+            nohp: e.target.nohp.value.trim(),
+            email: e.target.email.value.trim(),
+          };
+          try {
+            await fetch("/register", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(formData),
+            });
+          } catch (err) {
+            console.error("Gagal kirim data:", err);
+          }
+        });
+    </script>
+  </body>
+</html>

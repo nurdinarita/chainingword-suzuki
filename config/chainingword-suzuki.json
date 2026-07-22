@@ -1,0 +1,43 @@
+{
+  "kencang": 40,
+  "sedang": 35,
+  "kecil": 20,
+  "point1": 15,
+  "point2": 5,
+  "point3": 3,
+  "pageCountdown": 2.8,
+  "countdownGame": 20,
+  "pageWinandEnd": 5,
+  "image1": "bg-home-2.mp4",
+  "image2": "bg-regis-2.jpg",
+  "image3": "bg-countdown-2.mp4",
+  "image4": "bg-game-2.jpg",
+  "image5": "bg-overlay.png",
+  "image6": "bg-winner.jpg",
+  "image7": "bg-end-2.mp4",
+  "image8": "bg-end-2.mp4",
+  "fonts": "fonts.ttf",
+  "soundHome": "",
+  "soundTimer": "",
+  "soundGame": "",
+  "soundWinner": "",
+  "soundLose": "",
+  "event": "sambungkata-sambung-kata",
+  "page": "game",
+  "games": "sambungkata",
+  "home": "ya",
+  "formRegis": "ya",
+  "nohp": "tidak",
+  "email": "tidak",
+  "leaderboard": "tidak",
+  "arduinoSensor": false,
+  "rows": 15,
+  "cols": 15,
+  "words": [
+    [
+      "SUZUKI",
+      "MOTOR",
+      "MOBIL"
+    ]
+  ]
+}

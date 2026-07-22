@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Word Search Game</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: sans-serif;
+        background: #000;
+        color: white;
+        user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+      }
+
+      #page-game {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-size: cover;
+        background-position: center;
+      }
+
+      h2 {
+        font-size: 48px;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
+      }
+
+      #game-board {
+        display: grid;
+        gap: 1px;
+        touch-action: none;
+      }
+
+      .cell {
+        width: 125px;
+        height: 125px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid #444;
+        font-size: 90px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #111;
+        background-color: #fff;
+        border-radius: 8px;
+      }
+
+      .cell.selected {
+        background: yellow;
+        color: black;
+      }
+      .found {
+        text-decoration: line-through;
+        color: #00368f;
+        font-weight: 700;
+      }
+
+      #wordsList {
+        margin-top: 30px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        width: 90%;
+        max-width: 90%;
+      }
+
+      #wordsList span {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 15px;
+        font-size: 45px;
+        font-weight: bold;
+        border: 2px solid #fff;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.5);
+        text-transform: uppercase;
+        transition: 0.3s;
+      }
+
+      #wordsList span.found {
+        background: #e0f2fe;
+        border-color: #00368f;
+        color: #00368f;
+        text-decoration: line-through;
+      }
+
+      #countdown {
+        font-size: 65px;
+        margin-top: 25px;
+        font-weight: bold;
+        text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
+        color: #111;
+      }
+
+      /* PAGE SCORE */
+      #page-score {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: black;
+        display: none;
+        justify-content: center;
+        align-items: center;
+      }
+      #page-score video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      /* Page Winner */
+      #page-winner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: black;
+        display: none;
+        justify-content: center;
+        align-items: center;
+      }
+      #page-winner video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      /* Page Game Over */
+      #page-gameover {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: black;
+        display: none;
+        justify-content: center;
+        align-items: center;
+      }
+      #page-gameover video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      #score-display {
+        position: absolute;
+        z-index: 2;
+        font-size: 250px;
+        font-weight: bold;
+        color: #fff;
+        left: 50%;
+        transform: translateX(-50%);
+        top: 47.3%;
+        text-shadow: 4px 4px 12px rgba(0, 0, 0, 0.9);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="page-game">
+      <h2>Word Search Game</h2>
+      <div id="game-board"></div>
+      <div id="wordsList"></div>
+      <div id="countdown"></div>
+    </div>
+
+    <div id="page-winner">
+      <video id="video-score" autoplay loop muted>
+        <source
+          src="../../public/chainingword-suzuki/bg-winner-2.mp4"
+          type="video/mp4"
+        />
+      </video>
+    </div>
+    <audio id="sound-win">
+      <source
+        src="../../public/chainingword-suzuki/audio/finish.mp3"
+        type="audio/mp3"
+      />
+    </audio>
+    <audio id="sound-lose">
+      <source
+        src="../../public/chainingword-suzuki/audio/failed.mp3"
+        type="audio/mp3"
+      />
+    </audio>
+
+    <div id="page-gameover">
+      <video id="video-score" autoplay loop muted>
+        <source
+          src="../../public/chainingword-suzuki/bg-game-over.mp4"
+          type="video/mp4"
+        />
+      </video>
+    </div>
+
+    <div id="page-score">
+      <video id="video-score" autoplay loop muted>
+        <source
+          src="../../public/chainingword-suzuki/bg-end-2.mp4"
+          type="video/mp4"
+        />
+      </video>
+      <div id="score-display">0</div>
+    </div>
+
+    <div class="button-music" style="display: none">
+      <img src="icon/soundOff.png" id="img-sound-global" alt="" />
+      <audio id="sound-music-global" loop>
+        <source src="audio/home.mp3" type="audio/mp3" />
+      </audio>
+    </div>
+
+    <script>
+      // DEFAULT VALUE
+      let boardSize = { rows: 15, cols: 15 };
+      let words = ["NEXGARD", "RABIES", "PARVO", "PINJAL", "CACING"];
+      let wordsClone = words.map((w) => ({ text: w, status: "not-found" }));
+      let board = [];
+      let selectedCells = [];
+      let isSelecting = false;
+      let countdown = 300; // detik default
+      let delay = 3; // detik sebelum reload / redirect
+      let timer = null;
+      let gameConfig = {}; // config json
+      let eventName = "default";
+      let score = 0;
+      let pointPerWord = 0;
+
+      // Ambil nama event dari path pertama URL
+      const pathParts = window.location.pathname.split("/").filter(Boolean);
+      if (pathParts.length > 0) eventName = pathParts[0];
+
+      window.addEventListener("load", () => {
+        const audio = document.getElementById("sound-music-global");
+        const imgSound = document.getElementById("img-sound-global");
+        audio
+          .play()
+          .then(() => {
+            imgSound.src = "icon/soundOn.png";
+          })
+          .catch(() => {});
+      });
+
+      // === LOAD CONFIG BARU (PAKAI /config/${eventName}.json + cache buster) ===
+      async function loadConfig() {
+        try {
+          const cacheBuster = Date.now();
+          const res = await fetch(
+            `/config/${eventName}.json?cb=${cacheBuster}`,
+            { cache: "no-store" },
+          );
+          if (!res.ok)
+            throw new Error(`/config/${eventName}.json tidak ditemukan`);
+
+          gameConfig = await res.json();
+
+          // override nilai default dari config
+          if (gameConfig.rows)
+            boardSize.rows = parseInt(gameConfig.rows) || boardSize.rows;
+          if (gameConfig.cols)
+            boardSize.cols = parseInt(gameConfig.cols) || boardSize.cols;
+
+          if (Array.isArray(gameConfig.words) && gameConfig.words.length > 0) {
+            // Jika words = multi-set (array of arrays)
+            if (Array.isArray(gameConfig.words[0])) {
+              const randomIndex = Math.floor(
+                Math.random() * gameConfig.words.length,
+              );
+              words = gameConfig.words[randomIndex].map((w) =>
+                String(w).toUpperCase(),
+              );
+              console.log("SET TERPILIH:", randomIndex + 1);
+
+              // Logika penentuan poin score berdasarkan set yang dipilih
+              const pointCycle = randomIndex % 3;
+              if (pointCycle === 0) {
+                pointPerWord = parseInt(gameConfig.point1) || 0; // Set 1, Set 4, Set 7, dst.
+              } else if (pointCycle === 1) {
+                pointPerWord = parseInt(gameConfig.point2) || 0; // Set 2, Set 5, Set 8, dst.
+              } else if (pointCycle === 2) {
+                pointPerWord = parseInt(gameConfig.point3) || 0; // Set 3, Set 6, Set 9, dst.
+              }
+            } else {
+              words = gameConfig.words.map((w) => String(w).toUpperCase());
+            }
+
+            wordsClone = words.map((w) => ({ text: w, status: "not-found" }));
+          }
+
+          countdown = parseInt(gameConfig.countdownGame) || countdown;
+          delay = parseInt(gameConfig.pageWinandEnd) || delay;
+
+          // set background dari config (page-game)
+          if (gameConfig.image4) {
+            document.getElementById("page-game").style.backgroundImage =
+              `url(${gameConfig.image4}?cb=${cacheBuster})`;
+          }
+
+          // siapkan aset result (video/image untuk win/lose) dengan cache buster
+          if (gameConfig.image6) {
+            gameConfig.image6 = `${gameConfig.image6}?cb=${cacheBuster}`;
+          }
+          if (gameConfig.image7) {
+            gameConfig.image7 = `${gameConfig.image7}?cb=${cacheBuster}`;
+          }
+        } catch (err) {
+          console.error("Gagal memuat config:", err);
+          // kalau gagal, pakai default (boardSize, words, countdown, delay)
+        }
+
+        // setelah config (berhasil/gagal), baru buat board dan mulai countdown
+        createBoard();
+        document.getElementById("countdown").textContent =
+          "Waktu: " + countdown;
+        startCountdown();
+      }
+
+      function startCountdown() {
+        const countdownEl = document.getElementById("countdown");
+        countdownEl.textContent = "Waktu: " + countdown;
+
+        timer = setInterval(() => {
+          countdown--;
+          countdownEl.textContent = "Waktu: " + countdown;
+
+          if (countdown <= 0) {
+            clearInterval(timer);
+            const remaining = wordsClone.filter((w) => w.status !== "found");
+            if (remaining.length > 0) {
+              // masih ada kata yang belum ditemukan -> KALAH
+              goToScorePage("lose");
+            } else {
+              // semua kata sudah ditemukan tepat saat waktu habis -> MENANG
+              goToScorePage("win");
+            }
+          }
+        }, 1000);
+      }
+
+      async function goToScorePage(result) {
+        // Sembunyikan halaman game, tampilkan halaman score
+        document.getElementById("page-game").style.display = "none";
+        document.getElementById("page-score").style.display = "none";
+        document.getElementById("page-winner").style.display = "none";
+        document.getElementById("page-gameover").style.display = "none";
+
+        const musicGlobal = document.getElementById("sound-music-global");
+        if (musicGlobal) {
+          musicGlobal.pause();
+          musicGlobal.currentTime = 0;
+        }
+
+        // Hitung skor akhir pemain
+        if (result === "win") {
+          // document.getElementById("score-display").textContent = score;
+          document.getElementById("page-winner").style.display = "flex";
+
+          const soundWin = document.getElementById("sound-win");
+          if (soundWin) {
+            soundWin.currentTime = 0;
+            soundWin
+              .play()
+              .catch((err) => console.log("Gagal memutar audio win:", err));
+          }
+        } else {
+          // document.getElementById("score-display").textContent = score;
+          document.getElementById("page-gameover").style.display = "flex";
+          const soundLose = document.getElementById("sound-lose");
+          if (soundLose) {
+            soundLose.currentTime = 0;
+            soundLose
+              .play()
+              .catch((err) => console.log("Gagal memutar audio lose:", err));
+          }
+        }
+
+        const dataToSubmit = {
+          score: score,
+          event: eventName,
+        };
+
+        console.log("Mengirim update score ke server...", dataToSubmit);
+
+        try {
+          // Kirim data skor
+          const response = await fetch("/update-score", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(dataToSubmit),
+          });
+
+          if (response.ok) {
+            console.log("Skor berhasil tersimpan");
+          } else {
+            const errorText = await response.text();
+            console.warn("Server menolak update score:", errorText);
+          }
+        } catch (err) {
+          console.error("Gagal mengirim data score ke backend:", err);
+        }
+
+        // const videoScore = document.getElementById("video-score");
+        // if (result === "win") {
+        //   videoScore.src = gameConfig.image6 || "videos/winner.mp4";
+        // } else {
+        //   videoScore.src = gameConfig.image7 || "videos/end.mp4";
+        // }
+        // videoScore.load();
+        // videoScore.play();
+
+        setTimeout(() => {
+          document.getElementById("page-score").style.display = "flex";
+          document.getElementById("page-winner").style.display = "none";
+          document.getElementById("page-gameover").style.display = "none";
+          document.getElementById("score-display").textContent = score;
+        }, delay * 1000);
+
+        setTimeout(() => {
+          window.location.href = `/${eventName}`;
+        }, delay * 2000);
+      }
+
+      function createBoard() {
+        board = Array.from({ length: boardSize.rows }, () =>
+          Array.from({ length: boardSize.cols }, () => ""),
+        );
+        placeWords(board, words);
+        fillEmptyCells(board);
+        renderBoard();
+        renderWords();
+      }
+
+      function placeWords(newBoard, words_new) {
+        words_new.forEach((word) => {
+          let placed = false;
+          while (!placed) {
+            const dir = Math.random() < 0.5 ? "horizontal" : "vertical";
+            const row = Math.floor(Math.random() * boardSize.rows);
+            const col = Math.floor(Math.random() * boardSize.cols);
+            if (canPlaceWord(word, row, col, dir, newBoard)) {
+              for (let i = 0; i < word.length; i++) {
+                if (dir === "horizontal") newBoard[row][col + i] = word[i];
+                else newBoard[row + i][col] = word[i];
+              }
+              placed = true;
+            }
+          }
+        });
+      }
+
+      function canPlaceWord(word, row, col, dir, newBoard) {
+        if (dir === "horizontal" && col + word.length > boardSize.cols)
+          return false;
+        if (dir === "vertical" && row + word.length > boardSize.rows)
+          return false;
+        for (let i = 0; i < word.length; i++) {
+          const cell =
+            dir === "horizontal"
+              ? newBoard[row][col + i]
+              : newBoard[row + i][col];
+          if (cell !== "") return false;
+        }
+        return true;
+      }
+
+      function fillEmptyCells(newBoard) {
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        for (let i = 0; i < boardSize.rows; i++) {
+          for (let j = 0; j < boardSize.cols; j++) {
+            if (!newBoard[i][j])
+              newBoard[i][j] =
+                letters[Math.floor(Math.random() * letters.length)];
+          }
+        }
+      }
+
+      function renderBoard() {
+        const gameBoard = document.getElementById("game-board");
+        gameBoard.style.gridTemplateColumns = `repeat(${boardSize.cols},125px)`;
+        gameBoard.innerHTML = "";
+
+        board.forEach((row, r) => {
+          row.forEach((cell, c) => {
+            const div = document.createElement("div");
+            div.className = "cell";
+            div.textContent = cell;
+            div.dataset.cell = `${r}-${c}`;
+
+            // mouse
+            div.addEventListener("mousedown", () => startSelection(r, c, div));
+            div.addEventListener("mouseenter", () =>
+              continueSelection(r, c, div),
+            );
+            div.addEventListener("mouseup", endSelection);
+
+            // touch
+            div.addEventListener("touchstart", (e) => {
+              e.preventDefault();
+              startSelection(r, c, div);
+            });
+            div.addEventListener("touchmove", (e) => {
+              e.preventDefault();
+              const touch = e.touches[0];
+              const el = document.elementFromPoint(
+                touch.clientX,
+                touch.clientY,
+              );
+              if (el && el.classList.contains("cell")) {
+                const [rowIdx, colIdx] = el.dataset.cell.split("-").map(Number);
+                continueSelection(rowIdx, colIdx, el);
+              }
+            });
+            div.addEventListener("touchend", (e) => {
+              e.preventDefault();
+              endSelection();
+            });
+
+            gameBoard.appendChild(div);
+          });
+        });
+      }
+
+      function renderWords() {
+        const wordsList = document.getElementById("wordsList");
+        wordsList.innerHTML = "";
+        wordsClone.forEach((w) => {
+          const span = document.createElement("span");
+          span.textContent = w.text;
+          if (w.status === "found") span.classList.add("found");
+          wordsList.appendChild(span);
+        });
+      }
+
+      function startSelection(r, c, el) {
+        isSelecting = true;
+        selectedCells = [{ row: r, col: c, el }];
+        el.classList.add("selected");
+      }
+
+      function continueSelection(r, c, el) {
+        if (
+          isSelecting &&
+          !selectedCells.some((cell) => cell.row === r && cell.col === c)
+        ) {
+          selectedCells.push({ row: r, col: c, el });
+          el.classList.add("selected");
+        }
+      }
+
+      function getStraightLine(start, end) {
+        let cells = [];
+        if (start.row === end.row) {
+          const min = Math.min(start.col, end.col);
+          const max = Math.max(start.col, end.col);
+          for (let c = min; c <= max; c++) {
+            const el = document.querySelector(
+              `[data-cell="${start.row}-${c}"]`,
+            );
+            cells.push({ row: start.row, col: c, el });
+          }
+        } else if (start.col === end.col) {
+          const min = Math.min(start.row, end.row);
+          const max = Math.max(start.row, end.row);
+          for (let r = min; r <= max; r++) {
+            const el = document.querySelector(
+              `[data-cell="${r}-${start.col}"]`,
+            );
+            cells.push({ row: r, col: start.col, el });
+          }
+        }
+        return cells;
+      }
+
+      function endSelection() {
+        isSelecting = false;
+        if (selectedCells.length > 0) {
+          const start = selectedCells[0];
+          const end = selectedCells[selectedCells.length - 1];
+          const path = getStraightLine(start, end);
+
+          // hanya cek jika path valid (ada isi)
+          if (path.length > 0) {
+            checkWord(path);
+          }
+        }
+        selectedCells.forEach((cell) => cell.el.classList.remove("selected"));
+        selectedCells = [];
+      }
+
+      function checkWord(path) {
+        const built = path.map((cell) => board[cell.row][cell.col]).join("");
+        const reverseBuilt = [...built].reverse().join("");
+
+        for (const w of wordsClone) {
+          if (
+            (built === w.text || reverseBuilt === w.text) &&
+            w.status !== "found"
+          ) {
+            // Tandai sel sebagai ditemukan
+            path.forEach((cell) => {
+              // cell.el.style.color = "lime";
+              cell.el.style.color = "#00368f";
+              cell.el.style.backgroundColor = "#e0f2fe";
+              cell.el.style.borderColor = "#0284c7";
+              cell.el.style.fontWeight = "700";
+              cell.el.style.textDecoration = "line-through";
+            });
+
+            // Tandai kata sebagai ditemukan
+            w.status = "found";
+            renderWords();
+
+            // Tambahkan skor
+            score += pointPerWord;
+            console.log("Skor saat ini:", score);
+
+            // cek apakah semua kata sudah ditemukan
+            const allFound = wordsClone.every(
+              (word) => word.status === "found",
+            );
+            if (allFound) {
+              if (timer) clearInterval(timer);
+              goToScorePage("win");
+            }
+
+            break;
+          }
+        }
+      }
+
+      // MULAI
+      loadConfig();
+    </script>
+  </body>
+</html>
