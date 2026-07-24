@@ -6,7 +6,7 @@
   "point2": 5,
   "point3": 3,
   "pageCountdown": 2.8,
-  "countdownGame": 20,
+  "countdownGame": 30,
   "pageWinandEnd": 5,
   "image1": "bg-home-2.mp4",
   "image2": "bg-regis-2.jpg",
@@ -36,8 +36,17 @@
   "words": [
     [
       "SUZUKI",
-      "MOTOR",
-      "MOBIL"
+      "E-VITARA",
+      "JIMNY",
+      "GRAND VITARA",
+      "SPRESO"
+    ],
+    [
+      "APV",
+      "XL 7 MC ALPHA",
+      "FRONX SGX",
+      "CRUISE HYBRID",
+      "FRONX GL"
     ]
   ]
 }
